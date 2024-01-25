@@ -143,7 +143,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    public async deleteRepository(item: AzureRepository): Promise<void> {
+    public async deleteRepository(item: AzureRepository | V2Repository): Promise<void> {
         const authenticationProvider = this.getAuthenticationProvider(item.parent as unknown as AzureRegistryItem);
         const requestUrl = item.baseUrl.with({ path: `v2/_acr/${item.label}/repository` });
         const reponse = await registryV2Request({
@@ -158,13 +158,13 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    public async deleteRegistry(item: AzureRegistry): Promise<void> {
+    public async deleteRegistry(item: AzureRegistry | V2Registry): Promise<void> {
         const client = await createAzureContainerRegistryClient(item.subscription);
         const resourceGroup = getResourceGroupFromId(item.id);
         await client.registries.beginDeleteAndWait(resourceGroup, item.label);
     }
 
-    public async untagImage(item: AzureTag): Promise<void> {
+    public async untagImage(item: AzureTag | V2Tag): Promise<void> {
         const authenticationProvider = this.getAuthenticationProvider(item.parent.parent as unknown as AzureRegistryItem);
         const requestUrl = item.baseUrl.with({ path: `v2/_acr/${item.parent.label}/tags/${item.label}` });
         const reponse = await registryV2Request({
@@ -179,7 +179,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    public async tryGetAdminCredentials(azureRegistry: AzureRegistry): Promise<RegistryListCredentialsResult | undefined> {
+    public async tryGetAdminCredentials(azureRegistry: AzureRegistry | V2Registry): Promise<RegistryListCredentialsResult | undefined> {
         if (azureRegistry.registryProperties.adminUserEnabled) {
             const client = await createAzureContainerRegistryClient(azureRegistry.subscription);
             return await client.registries.listCredentials(getResourceGroupFromId(azureRegistry.id), azureRegistry.label);
@@ -188,7 +188,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
+    protected override getAuthenticationProvider(item: AzureRegistryItem | V2RegistryItem): ACROAuthProvider {
         const registryString = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registryString)) {
